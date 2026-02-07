@@ -1,0 +1,43 @@
+{
+  "name": "salud-aldia",
+  "version": "1.0.0",
+  "description": "SaludAlDía - Chronic Health Management App",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "backend": "yarn workspace backend",
+    "frontend": "yarn workspace frontend",
+    "dev": "concurrently \"yarn backend dev\" \"yarn frontend start\"",
+    "build": "yarn build:backend && yarn build:frontend",
+    "build:backend": "yarn backend build",
+    "build:frontend": "yarn frontend build",
+    "test": "yarn test:backend && yarn test:frontend",
+    "test:backend": "yarn backend test",
+    "test:frontend": "yarn frontend test",
+    "lint": "yarn lint:backend && yarn lint:frontend",
+    "lint:backend": "yarn backend lint",
+    "lint:frontend": "yarn frontend lint",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules",
+    "typecheck": "yarn typecheck:backend && yarn typecheck:frontend",
+    "typecheck:backend": "yarn backend typecheck",
+    "typecheck:frontend": "yarn frontend typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/softvibes/salud-aldia"
+  },
+  "author": "SoftVibes Lab",
+  "license": "PROPRIETARY"
+}
