@@ -8,21 +8,35 @@
 import { Pool, PoolConfig } from 'pg';
 import { logger } from '../utils/logger';
 
-// Database configuration from environment variables
-const poolConfig: PoolConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'salud_aldia',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  max: 20, // Maximum pool size
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-  // SSL configuration (required for HIPAA)
-  ssl: process.env.NODE_ENV === 'production'
-    ? { rejectUnauthorized: false }
-    : undefined,
-};
+// Parse DATABASE_URL if available, otherwise use individual variables
+let poolConfig: PoolConfig;
+
+if (process.env.DATABASE_URL) {
+  // Use DATABASE_URL (preferred for Render/production)
+  // Parse connection string and add SSL
+  poolConfig = {
+    connectionString: process.env.DATABASE_URL,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+    ssl: { rejectUnauthorized: false },
+  };
+} else {
+  // Fallback to individual environment variables
+  poolConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    database: process.env.DB_NAME || 'postgres',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+    ssl: process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : undefined,
+  };
+}
 
 // Create connection pool
 export const pool = new Pool(poolConfig);
@@ -30,7 +44,6 @@ export const pool = new Pool(poolConfig);
 // Log pool errors
 pool.on('error', (err) => {
   logger.error('Unexpected database pool error', err);
-  process.exit(-1);
 });
 
 /**
@@ -42,7 +55,6 @@ export async function query<T>(text: string, params?: unknown[]): Promise<T[]> {
     const result = await pool.query(text, params);
     const duration = Date.now() - start;
 
-    // Log slow queries (performance monitoring)
     if (duration > 100) {
       logger.warn(`Slow query (${duration}ms): ${text.substring(0, 100)}`);
     }
